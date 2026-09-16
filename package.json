@@ -1,0 +1,36 @@
+{
+  "name": "hawkeye-verify",
+  "version": "0.1.0",
+  "description": "Independently verify a Hawkeye election-results ledger: the hash chain, the Sigstore Rekor anchors and the per-race Merkle proofs.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "hawkeye-verify": "bin/hawkeye-verify.mjs"
+  },
+  "exports": {
+    ".": "./src/index.mjs"
+  },
+  "files": [
+    "bin",
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "verify": "node bin/hawkeye-verify.mjs"
+  },
+  "keywords": [
+    "election",
+    "transparency-log",
+    "sigstore",
+    "rekor",
+    "merkle",
+    "hash-chain",
+    "verification",
+    "nigeria"
+  ]
+}

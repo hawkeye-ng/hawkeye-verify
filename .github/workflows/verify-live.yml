@@ -1,0 +1,32 @@
+name: Verify hawkeye.com.ng
+
+# A public, daily run of the verifier against the live site and Rekor: anyone can read the
+# log of every run. A failed check fails the run. A network problem (exit code 2) is
+# recorded as a warning instead, so an outage is never mistaken for tampering.
+on:
+  schedule:
+    - cron: '17 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify the newest anchor
+        run: |
+          set +e
+          node bin/hawkeye-verify.mjs
+          code=$?
+          if [ "$code" = 2 ]; then
+            echo "::warning::The verifier could not finish (network). This is not a verification failure."
+            exit 0
+          fi
+          exit "$code"
