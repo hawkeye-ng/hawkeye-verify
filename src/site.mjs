@@ -7,7 +7,13 @@ const PAGE = 1000; // the server's maximum page size for /api/ledger/entries
 
 export class Site {
   constructor(base = DEFAULT_SITE, { fetch: fetchImpl = globalThis.fetch, userAgent } = {}) {
-    this.base = String(base).replace(/\/+$/, '');
+    // Trailing slashes stripped by a scan, not a regex: /\/+$/ backtracks
+    // quadratically on a string of many slashes, and `base` is whatever URL
+    // the caller was given rather than one they necessarily chose.
+    const raw = String(base);
+    let end = raw.length;
+    while (end > 0 && raw.charCodeAt(end - 1) === 47 /* '/' */) end -= 1;
+    this.base = raw.slice(0, end);
     this.fetch = fetchImpl;
     // Browsers ignore a user-agent header; Node sends it. Some hosts refuse anonymous clients.
     this.headers = { accept: 'application/json', ...(userAgent ? { 'user-agent': userAgent } : {}) };
