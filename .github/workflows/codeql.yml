@@ -1,0 +1,59 @@
+# CodeQL — GitHub's own static analysis, free on public repositories.
+#
+# WHY THIS REPO IN PARTICULAR. hawkeye-verify is the library an outsider runs to
+# check that a published Hawkeye report's signature and ledger position are
+# genuine. It is the one piece of code the project asks people to trust without
+# trusting us — so it is the piece that should be scanned, and scanned in public
+# where the results can be seen.
+#
+# javascript-typescript and actions only: this is a JavaScript library with no
+# Python and no compiled sources. build-mode none, because nothing here needs
+# building for CodeQL to read it.
+name: CodeQL
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Weekly. A dependency's newly-disclosed pattern can make existing code
+    # vulnerable without anyone touching it.
+    - cron: '41 4 * * 0'
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    name: Analyze ${{ matrix.language }}
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write     # REQUIRED: this is what uploads the results
+      packages: read
+      actions: read
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: javascript-typescript
+            build-mode: none
+          - language: actions
+            build-mode: none
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+          # security-extended is deliberately noisier. For a verifier, a
+          # false positive costs a read and a miss costs the project's claim.
+          queries: security-extended
+
+      - name: Analyze
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: /language:${{ matrix.language }}
